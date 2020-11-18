@@ -26,7 +26,9 @@ def parse_file(file, func):
 # bulk index the tweet list
 def index_tweets():
     def bulk_api_tweet_string(tweet, method):
-        return f"{{\"{method}\":{{\"_id\":{tweet['id']}}}}}\n{json.dumps(tweet)}"
+        # id was removed from mapping
+        id = tweet.pop('id')
+        return f"{{\"{method}\":{{\"_id\":{id}}}}}\n{json.dumps(tweet)}"
 
     body = '\n'.join([bulk_api_tweet_string(tweet, 'index') for tweet in tweets]) + '\n'
     make_request(

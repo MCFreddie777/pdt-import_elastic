@@ -87,9 +87,6 @@ tweet_mapping = {
             "hashtags": {
                 "type": "text"
             },
-            "id": {
-                "type": "keyword"
-            },
             "location": {
                 "type": "geo_point"
             },
