@@ -1,13 +1,17 @@
 import jsonlines
 import requests
 from os import path, listdir
-from config.connection import connection
 from datetime import datetime
+from config.connection import connection
+from config.settings import DEBUG
+from helpers.logging import Logging
+from helpers.make_request import make_request
 
 
 # parses each file of the files list
 def parse_each_file(files, func):
     for index, file in enumerate(files):
+        logging.log(f"Parsing file {file} ({index + 1}/{len(files)})")
         parse_file(file, func)
 
 
@@ -80,24 +84,27 @@ def save_tweet(obj):
         for hashtag in obj['entities']['hashtags']:
             simplified_obj['hashtags'].append(hashtag['text'])
 
-    response = requests.post(
+    make_request(
+        requests.post,
         url=f"http://{connection.hostname}:{connection.port}/{connection.index}/_doc",
         json=simplified_obj
     )
 
-    if (response.status_code >= 300):
-        raise Exception(response.content.decode())
-
     return obj['id_str']
 
-# debug mode
-DEBUG = False
 
 # resolve relative paths
 data_dir = path.join(path.dirname(__file__), '../data')
 
+# global object for logging
+logging = Logging(datetime.now())
+
 if DEBUG:
-    parse_file(path.join(data_dir, 'test/test_1.jsonl'), save_tweet)
+    file = 'test/test_2000.jsonl'
+    logging.log(f"Parsing file {file}")
+    parse_file(file, save_tweet)
 else:
     files = (entry for entry in listdir(data_dir) if entry.endswith('.jsonl'))
     parse_each_file(list(files), save_tweet)
+
+logging.log("Parsing finished.")
