@@ -1,5 +1,6 @@
 import jsonlines
 import requests
+import json
 from os import path, listdir
 from datetime import datetime
 from config.connection import connection
@@ -20,6 +21,20 @@ def parse_file(file, func):
     with jsonlines.open(path.join(data_dir, file)) as reader:
         for obj in reader:
             func(obj)
+
+
+# bulk index the tweet list
+def index_tweets():
+    def bulk_api_tweet_string(tweet, method):
+        return f"{{\"{method}\":{{\"_id\":{tweet['id']}}}}}\n{json.dumps(tweet)}"
+
+    body = '\n'.join([bulk_api_tweet_string(tweet, 'index') for tweet in tweets]) + '\n'
+    make_request(
+        requests.post,
+        url=f"http://{connection.hostname}:{connection.port}/{connection.index}/_bulk",
+        headers={'Content-Type': 'application/json'},
+        data=body
+    )
 
 
 # saves the tweet to the database
@@ -84,11 +99,13 @@ def save_tweet(obj):
         for hashtag in obj['entities']['hashtags']:
             simplified_obj['hashtags'].append(hashtag['text'])
 
-    make_request(
-        requests.post,
-        url=f"http://{connection.hostname}:{connection.port}/{connection.index}/_doc",
-        json=simplified_obj
-    )
+    # append the simplified object into tweet list
+    tweets.append(simplified_obj)
+
+    # if the tweet limit is reached, bulk index the tweet list
+    if len(tweets) >= tweet_bulk_limit:
+        index_tweets()
+        tweets.clear()
 
     return obj['id_str']
 
@@ -99,6 +116,10 @@ data_dir = path.join(path.dirname(__file__), '../data')
 # global object for logging
 logging = Logging(datetime.now())
 
+# list to store the tweets until bulk-indexed
+tweets = []
+tweet_bulk_limit = 1000
+
 if DEBUG:
     file = 'test/test_2000.jsonl'
     logging.log(f"Parsing file {file}")
@@ -106,5 +127,9 @@ if DEBUG:
 else:
     files = (entry for entry in listdir(data_dir) if entry.endswith('.jsonl'))
     parse_each_file(list(files), save_tweet)
+
+# bulk index the rest of tweets in the list
+if len(tweets):
+    index_tweets()
 
 logging.log("Parsing finished.")
