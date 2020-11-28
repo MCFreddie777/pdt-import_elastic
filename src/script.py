@@ -122,7 +122,7 @@ logging = Logging(datetime.now())
 
 # list to store the tweets until bulk-indexed
 tweets = []
-tweet_bulk_limit = 1000
+tweet_bulk_limit = 3000
 
 if DEBUG:
     file = 'test/test_2000.jsonl'
