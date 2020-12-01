@@ -32,7 +32,70 @@ def create_index(name, settings):
 tweet_settings = {
     "settings": {
         "number_of_shards": 3,
-        "number_of_replicas": 2
+        "number_of_replicas": 2,
+        "index": {
+            "max_ngram_diff": 9
+        },
+        "analysis": {
+            "analyzer": {
+                "englando": {
+                    "filter": [
+                        "english_possessive_stemmer",
+                        "lowercase",
+                        "english_stop",
+                        "english_stemmer"
+                    ],
+                    "char_filter": [
+                        "html_strip"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "custom_ngram": {
+                    "filter": [
+                        "lowercase",
+                        "asciifolding",
+                        "filter_ngrams"
+                    ],
+                    "char_filter": [
+                        "html_strip"
+                    ],
+                    "tokenizer": "standard"
+                },
+                "custom_shingles": {
+                    "filter": [
+                        "asciifolding",
+                        "filter_shingles"
+                    ],
+                    "char_filter": [
+                        "html_strip"
+                    ],
+                    "tokenizer": "standard"
+                }
+            },
+            "filter": {
+                "english_possessive_stemmer": {
+                    "type": "stemmer",
+                    "language": "possessive_english"
+                },
+                "english_stop": {
+                    "type": "stop",
+                    "stopwords": "_english_"
+                },
+                "english_stemmer": {
+                    "type": "stemmer",
+                    "language": "english"
+                },
+                "filter_ngrams": {
+                    "type": "ngram",
+                    "min_gram": 1,
+                    "max_gram": 10
+                },
+                "filter_shingles": {
+                    "type": "shingle",
+                    "token_separator": ""
+                }
+            }
+        }
     }
 }
 
@@ -43,7 +106,14 @@ tweet_mapping = {
             "author": {
                 "properties": {
                     "description": {
-                        "type": "text"
+                        "type": "text",
+                        "analyzer": "englando",
+                        "fields": {
+                            "custom_shingles": {
+                                "type": "text",
+                                "analyzer": "custom_shingles"
+                            }
+                        }
                     },
                     "followers_count": {
                         "type": "integer"
@@ -55,10 +125,26 @@ tweet_mapping = {
                         "type": "long"
                     },
                     "name": {
-                        "type": "text"
+                        "type": "text",
+                        "fields": {
+                            "custom_ngram": {
+                                "type": "text",
+                                "analyzer": "custom_ngram"
+                            },
+                            "custom_shingles": {
+                                "type": "text",
+                                "analyzer": "custom_shingles"
+                            }
+                        }
                     },
                     "screen_name": {
-                        "type": "text"
+                        "type": "text",
+                        "fields": {
+                            "custom_ngram": {
+                                "type": "text",
+                                "analyzer": "custom_ngram"
+                            }
+                        }
                     },
                     "statuses_count": {
                         "type": "integer"
@@ -66,7 +152,8 @@ tweet_mapping = {
                 }
             },
             "content": {
-                "type": "text"
+                "type": "text",
+                "analyzer": "englando"
             },
             "country": {
                 "properties": {
@@ -96,10 +183,26 @@ tweet_mapping = {
                         "type": "long"
                     },
                     "name": {
-                        "type": "text"
+                        "type": "text",
+                        "fields": {
+                            "custom_ngram": {
+                                "type": "text",
+                                "analyzer": "custom_ngram"
+                            },
+                            "custom_shingles": {
+                                "type": "text",
+                                "analyzer": "custom_shingles"
+                            }
+                        }
                     },
                     "screen_name": {
-                        "type": "text"
+                        "type": "text",
+                        "fields": {
+                            "custom_ngram": {
+                                "type": "text",
+                                "analyzer": "custom_ngram"
+                            }
+                        }
                     }
                 }
             },
