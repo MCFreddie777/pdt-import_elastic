@@ -125,7 +125,7 @@ tweets = []
 tweet_bulk_limit = 3000
 
 if DEBUG:
-    file = 'test/test_2000.jsonl'
+    file = 'test/test_50.jsonl'
     logging.log(f"Parsing file {file}")
     parse_file(file, save_tweet)
 else:
