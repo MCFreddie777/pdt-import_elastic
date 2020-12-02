@@ -6,12 +6,17 @@ def make_request(request_function, fail_on_status_code=True, **kwargs):
     retrying_success, response = Retrying().start(
         lambda: request_function(**kwargs),
         lambda res: \
-            res.ok and
             (
-                    'errors' in (body := json.loads(res.content.decode())) and
-                    body['errors'] is False
+                    res.ok and
+                    (
+                            (
+                                    'errors' in (body := json.loads(res.content.decode())) and
+                                    body['errors'] is False
+                            ) or
+                            'errors' not in (body)
+                    )
             ) or
-            'errors' not in (body)
+            not fail_on_status_code and res.status_code < 500
     )
 
     if not retrying_success and fail_on_status_code:
