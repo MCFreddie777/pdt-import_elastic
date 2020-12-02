@@ -32,7 +32,7 @@ def create_index(name, settings):
 tweet_settings = {
     "settings": {
         "number_of_shards": 3,
-        "number_of_replicas": 2,
+        "number_of_replicas": 0, # memory issues
         "index": {
             "max_ngram_diff": 9
         },
