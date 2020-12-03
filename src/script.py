@@ -53,8 +53,7 @@ def save_tweet(obj):
     simplified_obj['retweet_count'] = obj['retweet_count']
     simplified_obj['favorite_count'] = obj['favorite_count']
     # convert the ruby time format into timestamp
-    simplified_obj['happened_at'] = int(datetime.timestamp(datetime.strptime(obj['created_at'], '%a %b %d %H:%M:%S %z %Y')))
-
+    simplified_obj['happened_at'] = datetime.strptime(obj['created_at'], '%a %b %d %H:%M:%S %z %Y').timestamp() * 1000
 
     # location
     if obj['coordinates'] and obj['coordinates']['coordinates']:
